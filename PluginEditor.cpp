@@ -14,8 +14,20 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // Initialise our background Drawable using the image data from BinaryData. 
     background (juce::Drawable::createFromImageData (BinaryData::background_png,
                                                      BinaryData::background_pngSize)),
-    output_volumeSlider (juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    output_volumeAttachment (parameterTree, "volume", output_volumeSlider)
+    outputvolume_Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow),
+    outputvolume_Attachment(parameterTree, "volume", outputvolume_Slider),
+    // latemt control
+    latentcontrol1_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol1_Attachment(parameterTree, "1-control", latentcontrol1_Slider),
+    latentcontrol2_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol2_Attachment(parameterTree, "2-control", latentcontrol2_Slider),
+    latentcontrol3_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol3_Attachment(parameterTree, "3-control", latentcontrol3_Slider),
+    latentcontrol4_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol4_Attachment(parameterTree, "4-control", latentcontrol4_Slider),
+    latentcontrol5_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol5_Attachment(parameterTree, "5-control", latentcontrol5_Slider)
+
 {
     // Add the backround to our editor component.
     addAndMakeVisible (background.get());
@@ -26,7 +38,14 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     fileChooserButton.changeWidthToFitText (50);
     addAndMakeVisible (fileChooserButton);
 
-    addAndMakeVisible(output_volumeSlider);
+    addAndMakeVisible(outputvolume_Slider);
+
+    addAndMakeVisible(latentcontrol1_Slider);
+    addAndMakeVisible(latentcontrol2_Slider);
+    addAndMakeVisible(latentcontrol3_Slider);
+    addAndMakeVisible(latentcontrol4_Slider);
+    addAndMakeVisible(latentcontrol5_Slider);
+
 
     // Not resizable!
     setResizable (false, 
@@ -48,7 +67,7 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // Nothing to do here as our image Drawable will serve as the editor's background.
 }
-
+/*
 void AudioPluginAudioProcessorEditor::resized()
 {
     // Set the image to take up the entirty of the editor.
@@ -58,7 +77,38 @@ void AudioPluginAudioProcessorEditor::resized()
     // image in an image editor and finding the pixel positions I wanted the top
     // left of the button to be at.
     fileChooserButton.setTopLeftPosition (270, 180);
-    output_volumeSlider.setBounds(100, 180, 100, 100);
+    outputvolume_Slider.setBounds(100, 180, 100, 100);
+}
+*/
+
+void AudioPluginAudioProcessorEditor::resized()
+{
+    // Set the image to take up the entire editor.
+    background->setBounds(getLocalBounds());
+
+    // Set the position of the file chooser button in the top left corner.
+    fileChooserButton.setBounds(30, 30, 120, 50);
+
+    // Set the position of the volume knob in the far right corner.
+    outputvolume_Slider.setBounds(getWidth() - 110, 80, 70, 170);
+
+    // Calculate the horizontal gap between each of the latent control knobs.
+    int horizontalGap = (getWidth() - 160) / 4;
+
+    // Set the position of the first latent control knob.
+    latentcontrol1_Slider.setBounds(180, 80, 100, 100);
+
+    // Set the position of the second latent control knob.
+    latentcontrol2_Slider.setBounds(330, 80, 100, 100);
+
+    // Set the position of the third latent control knob.
+    latentcontrol3_Slider.setBounds(120, 220, 100, 100);
+
+    // Set the position of the fourth latent control knob.
+    latentcontrol4_Slider.setBounds(270, 220, 100, 100);
+
+    // Set the position of the fifth latent control knob.
+    latentcontrol5_Slider.setBounds(420, 220, 100, 100);
 }
 
 //==============================================================================

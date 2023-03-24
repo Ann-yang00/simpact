@@ -6,6 +6,8 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <torch/script.h>
 #include <torch/torch.h>
+#include <juce_core/juce_core.h>
+
 
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor,
@@ -58,7 +60,9 @@ public:
     void AudioPluginAudioProcessor::loadAudioFile();
     std::atomic_flag newfile;
 
+
 private:
+
     juce::AudioProcessorValueTreeState parameters;
     std::atomic <float>* output_volume;
     std::atomic_flag changesApplied;
@@ -81,16 +85,33 @@ private:
 
     juce::AudioBuffer<float> loadedBuffer;
 
+    // latent space manipulation
+
 
     // Encoder
     void AudioPluginAudioProcessor::latentRepresentation();
-    std::string rave_model_file = "C:\\Users\\firef\\Desktop\\impact_plugin\\AudioPlugin\\rave_impact_model_mono.ts";
+    std::string rave_model_file = "C:\\Users\\firef\\Documents\\simpact_vst\\rave_impact_model_mono.ts";
 
     torch::jit::script::Module model;
 
     const int modelSampleRate = 44100;
-    torch::Tensor loaded_audio, latent_vectors; //decoded_audio;
+    torch::Tensor latent_vectors, decoded_output; //decoded_audio;
+    torch::Tensor delta;
+    // decoder
+    void AudioPluginAudioProcessor::decoder();
 
+    // latent space update
+    bool AudioPluginAudioProcessor::mod_latent();
+    juce::CriticalSection criticalSection;
+    std::vector<std::atomic<float>*> latent_controls;
+    std::vector<float> snapshot;
+    /*
+    std::atomic <float>* latent_control1;
+    std::atomic <float>* latent_control2;
+    std::atomic <float>* latent_control3;
+    std::atomic <float>* latent_control4;
+    std::atomic <float>* latent_control5;
+    */
     //void fileChooser();
 
     // Playback

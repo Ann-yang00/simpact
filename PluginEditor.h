@@ -19,7 +19,6 @@ public:
     // will be called.
     void buttonClicked (juce::Button* button) override;
 
-
 private:
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -37,8 +36,22 @@ private:
     // give us a button with a textual label on it.
     juce::TextButton fileChooserButton;
 
-    juce::Slider output_volumeSlider;
-    SliderAttachment output_volumeAttachment; 
+    juce::Slider outputvolume_Slider;
+    SliderAttachment outputvolume_Attachment; 
+
+    //=============================================================================
+    // Declare the latent controls:
+    juce::Slider latentcontrol1_Slider;
+    SliderAttachment latentcontrol1_Attachment;
+    juce::Slider latentcontrol2_Slider;
+    SliderAttachment latentcontrol2_Attachment;
+    juce::Slider latentcontrol3_Slider;
+    SliderAttachment latentcontrol3_Attachment;
+    juce::Slider latentcontrol4_Slider;
+    SliderAttachment latentcontrol4_Attachment;
+    juce::Slider latentcontrol5_Slider;
+    SliderAttachment latentcontrol5_Attachment;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };

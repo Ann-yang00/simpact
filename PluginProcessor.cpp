@@ -5,6 +5,10 @@
 #include <juce_dsp/juce_dsp.h>
 #include <sstream>
 
+static const int vector_num = 5;
+static const juce::String controlIdSuffix = "-control";
+static const juce::String controlNameSuffix = " Control";
+
 static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout parameters;
@@ -15,10 +19,25 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
                                                                             "|");
     playback_group->addChild (std::make_unique <juce::AudioParameterFloat> ("volume",
                                                                                 "Volume",
-                                                                                0.0f,
-                                                                                20.0f,
+                                                                                -10.0f,
+                                                                                30.0f,
                                                                                 0.0f));
     parameters.add(std::move(playback_group));                                                        
+
+    auto latent_group = std::make_unique <juce::AudioProcessorParameterGroup>("latentcontrol",
+                                                                                "Latent Space Control",
+                                                                                "|");
+    for (int i = 0; i < vector_num; ++i)
+    {
+        int vectorNumber = i + 1;
+        auto controlID = juce::String(vectorNumber);
+        latent_group->addChild(std::make_unique <juce::AudioParameterFloat>(controlID + controlIdSuffix,
+                                                                            controlID + controlNameSuffix,
+                                                                            -10.0f,
+                                                                            10.0f,
+                                                                            0.0f));
+    }
+    parameters.add(std::move(latent_group));
 
     return parameters;
 }
@@ -28,6 +47,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : parameters (*this, nullptr, "parameters", createParameterLayout()),
       AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::mono(), true))
 {
+    juce::ScopedLock lock(criticalSection);
     parameters.state.addListener (this); // monitor parameter change
     populateParameterValues();
     changesApplied.clear ();
@@ -52,6 +72,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     //auto named_buffers = model.named_buffers();
 
     loadAudioFile();
+
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -61,7 +82,7 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 //==============================================================================
 void AudioPluginAudioProcessor::latentRepresentation()
 {
-
+    juce::ScopedLock lock(criticalSection);
     // Get a pointer to the raw audio data
     const float* audioData = loadedBuffer.getReadPointer(0);
 
@@ -82,26 +103,43 @@ void AudioPluginAudioProcessor::latentRepresentation()
     model_inputs.push_back(audioIValue);
 
     c10::InferenceMode guard;
-    loaded_audio = model.get_method("forward")(model_inputs).toTensor();
+    latent_vectors = model.get_method("encode")(model_inputs).toTensor();
     //auto encodeFunc = model.get_method("forward");
     //auto something = encodeFunc(model_inputs);
     //auto decoded_audio = something.toTensor();
 
     //decoded_audio = model.forward({ latent_vectors }).toTensor();
+    decoder();
     
-    auto output_shape = loaded_audio.sizes();
+    auto output_shape = decoded_output.sizes();
     int output_num_samples = output_shape[2]; // Assuming the shape is {1, numChannels, numSamples}
     loadedBuffer.setSize(1, output_num_samples, false, true, true);
-    auto output_data = loaded_audio.view({ 1, output_num_samples }).data_ptr<float>();
+    auto output_data = decoded_output.view({ 1, output_num_samples }).data_ptr<float>();
 
     for (int sample = 0; sample < numSamples; ++sample)
     {
         loadedBuffer.setSample(0, sample, output_data[sample]);
     }
-    
 }
+void AudioPluginAudioProcessor::decoder() {
+    juce::ScopedLock lock(criticalSection);
+
+    // Wrap the torch::Tensor in a c10::IValue
+    //if (delta.numel() != 0) {
+    //    latent_vectors += delta;
+    //    delta.zero_();
+    //}
+    torch::jit::IValue latentIValue = latent_vectors;
+    // Add the c10::IValue to a std::vector<c10::IValue>
+    std::vector<torch::jit::IValue> decoder_inputs;
+    decoder_inputs.push_back(latentIValue);
+    decoded_output = model.get_method("decode")(decoder_inputs).toTensor();
+
+}
+
 void AudioPluginAudioProcessor::loadAudioFile()
 {      
+    juce::ScopedLock lock(criticalSection);
     // Create an AudioFormatReaderSource for the fileReader1
     filePlayer1 = std::make_unique <juce::AudioFormatReaderSource> (fileReader1.get(), false);
     
@@ -129,9 +167,33 @@ void AudioPluginAudioProcessor::loadAudioFile()
     latentRepresentation();
 }
 
+bool AudioPluginAudioProcessor::mod_latent() {
+    juce::ScopedLock lock(criticalSection);
+    bool change = false;
+    for (int i = 0; i < vector_num; ++i) {
+        auto current_val = latent_controls[i]->load();
+        if (current_val != snapshot[i]) {
+            change = true;
+            delta = torch::zeros_like(latent_vectors);
+            torch::Tensor addition = torch::tensor(current_val);
+            //auto delta = torch::linspace(current_val, current_val, latent_vectors.size(-1), torch::kFloat32);
+            for (int n = 0; n < delta.size(-1); ++n) {
+                delta[0][i][n] += addition;
+            }
+            //latent_vectors.narrow(1, 0, latent_vectors.size(-1)).add_(delta);
+
+            //latent_vectors.slice(1, i, i + 1).squeeze(1) += delta;
+            snapshot[i] = current_val;
+        }
+    }
+    if (change == true) {
+        return true;
+    }
+}
 //==============================================================================
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {   
+    juce::ScopedLock lock(criticalSection);
     // for playback
     filePlayer2 = std::make_unique<BufferAudioSource>(loadedBuffer);
     resampler2 = std::make_unique<juce::ResamplingAudioSource>(filePlayer2.get(), false, 1);
@@ -150,6 +212,7 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
+    juce::ScopedLock lock(criticalSection);
     updateProcessors();
 
     juce::ScopedNoDenormals noDenormals;
@@ -179,6 +242,8 @@ void AudioPluginAudioProcessor::releaseResources()
 {
     resampler1->releaseResources();
     filePlayer1->releaseResources();
+    resampler2->releaseResources();
+    filePlayer2->releaseResources();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -228,6 +293,7 @@ void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeI
 void AudioPluginAudioProcessor::valueTreePropertyChanged (juce::ValueTree &treeWhosePropertyHasChanged,
                                                           const juce::Identifier &property)
 {
+    juce::ScopedLock lock(criticalSection);
     // Clear the changesApplied flag so that coefficients will be recalcualted on the next
     // call to processBlock(). THe clear() function of std::actomic_flag puts the flag
     // into the clear (false) state.
@@ -236,16 +302,37 @@ void AudioPluginAudioProcessor::valueTreePropertyChanged (juce::ValueTree &treeW
 
 void AudioPluginAudioProcessor::updateProcessors()
 {
+    juce::ScopedLock lock(criticalSection);
     // return if no parameter has been changed
     if (changesApplied.test_and_set()){
         return;
     }
     output_volume = parameters.getRawParameterValue("volume");
+    //populateParameterValues();
+    bool update = mod_latent();
+    //if (update == true) {
+        //latent_vectors += delta;
+        //decoder();
+    //}
 }
 
-void AudioPluginAudioProcessor::populateParameterValues(){
+void AudioPluginAudioProcessor::populateParameterValues()
+{
+    juce::ScopedLock lock(criticalSection);
+    latent_controls.reserve(vector_num);
+    snapshot.reserve(vector_num);
     // providing raw parameter to the pointers declared 
     output_volume = parameters.getRawParameterValue("volume");
+
+    for (int i = 0; i < vector_num; ++i)
+    {
+        int vectorNumber = i + 1;
+        auto controlID = juce::String(vectorNumber);
+        auto rawParameterValue = parameters.getRawParameterValue(controlID + controlIdSuffix);
+        latent_controls.push_back(rawParameterValue);
+        snapshot.push_back(latent_controls[i]->load());
+    }
+
 }
 //==============================================================================
 // pass new file path
