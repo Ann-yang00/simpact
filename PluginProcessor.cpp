@@ -167,7 +167,7 @@ void AudioPluginAudioProcessor::loadAudioFile()
     latentRepresentation();
 }
 
-bool AudioPluginAudioProcessor::mod_latent() {
+torch::Tensor AudioPluginAudioProcessor::mod_latent() {
     juce::ScopedLock lock(criticalSection);
     bool change = false;
     for (int i = 0; i < vector_num; ++i) {
@@ -187,13 +187,18 @@ bool AudioPluginAudioProcessor::mod_latent() {
         }
     }
     if (change == true) {
-        return true;
+        updateApplied.clear();
     }
+    return delta;
 }
 //==============================================================================
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {   
-    juce::ScopedLock lock(criticalSection);
+    //juce::ScopedLock lock(criticalSection);
+    //if (!updateApplied.test_and_set()) {
+    //    latent_vectors += delta;
+    //    decoder();
+    //}
     // for playback
     filePlayer2 = std::make_unique<BufferAudioSource>(loadedBuffer);
     resampler2 = std::make_unique<juce::ResamplingAudioSource>(filePlayer2.get(), false, 1);
@@ -309,7 +314,7 @@ void AudioPluginAudioProcessor::updateProcessors()
     }
     output_volume = parameters.getRawParameterValue("volume");
     //populateParameterValues();
-    bool update = mod_latent();
+    delta = mod_latent();
     //if (update == true) {
         //latent_vectors += delta;
         //decoder();

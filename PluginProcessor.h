@@ -66,6 +66,7 @@ private:
     juce::AudioProcessorValueTreeState parameters;
     std::atomic <float>* output_volume;
     std::atomic_flag changesApplied;
+    std::atomic_flag updateApplied;
     
     // This function will be called to update the filter coefficients based on the
     // user parameters.
@@ -90,7 +91,11 @@ private:
 
     // Encoder
     void AudioPluginAudioProcessor::latentRepresentation();
-    std::string rave_model_file = "C:\\Users\\firef\\Documents\\simpact_vst\\rave_impact_model_mono.ts";
+
+    std::string rave_model_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/rave_impact_model_mono.ts";
+
+
+    //std::string rave_model_file = "C:\\Users\\firef\\Documents\\simpact_vst\\rave_impact_model_mono.ts";
 
     torch::jit::script::Module model;
 
@@ -101,7 +106,7 @@ private:
     void AudioPluginAudioProcessor::decoder();
 
     // latent space update
-    bool AudioPluginAudioProcessor::mod_latent();
+    torch::Tensor AudioPluginAudioProcessor::mod_latent();
     juce::CriticalSection criticalSection;
     std::vector<std::atomic<float>*> latent_controls;
     std::vector<float> snapshot;
