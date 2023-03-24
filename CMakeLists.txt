@@ -14,7 +14,7 @@ add_subdirectory(JUCE)
 # adding torch dependency taken from https://pytorch.org/cppdocs/installing.html
 # https://forum.juce.com/t/using-libtorch-with-juce/41154
 
-list(APPEND CMAKE_PREFIX_PATH "C:/Users/firef/Documents/libtorch")
+#list(APPEND CMAKE_PREFIX_PATH "C:/Users/firef/Documents/libtorch")
 #set(CMAKE_PREFIX_PATH C:/Users/firef/Documents/libtorch) # where the unzipped libtorch file is
 find_package(Torch REQUIRED)
 #include_directories(${TORCH_INCLUDE_DIRS})
