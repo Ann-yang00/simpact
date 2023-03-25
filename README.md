@@ -1,8 +1,8 @@
 # simpact_vst
-<img src=/images/plugin_screensnip.PNG width=50% height=50%>
+<img src=/images/plugin_screensnip.PNG width=60% height=60%>
 
 ### Summary
-Simpact (Simulated Impact) is a plugin that generates impact foley sounds with minimal, intuitive controls based on [RAVE][rave_repo]. MIDI note ONs trigger decoded audio playback, allowing users to place notes corresponding to visual cues. Imported audio files are mapped into the latent space, whose perceptual quality can then be manipulated. The general goal of this plugin design is to assist users in creating a variety of realistic sounding impact sounds without the need for a large sample library or synthesis expertise 
+Simpact (Simulated Impact) is a plugin that generates impact foley sounds with minimal, intuitive controls based on [RAVE][rave_repo]. MIDI note ONs trigger decoded audio playback, allowing users to place notes corresponding to visual cues. Imported audio files are mapped into the latent space, whose perceptual quality can then be manipulated. The general goal of this plugin design is to assist users in creating a variety of realistic sounding impact sounds without the need for a large sample library or synthesis expertise. 
 #### Known Issues
 - latent controls are not functional
 - stutter playback after new file is imported
@@ -12,7 +12,7 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 
 ## External installation dependencies
 * CMake
- * add to path
+  * add to path
 * libtorch
   * downlaod from pytorch.org 
   * Stable(2.0.0)-Windows-LibTorch-C++/Java/CPU (Debug version)
@@ -39,5 +39,13 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 - Playback randomisation control 
 - MIDI note assignment (play the assigned clips on different notes)
 
-[[Demonstration video]](https://youtu.be/TYQM8mYBsws)
+### Demo
 
+<a href="https://youtu.be/TYQM8mYBsws"><img src="/images/video_thumbnail.PNG" alt="Demonstration video" width="40%" height="40%" /></a>
+
+#### Contacts
+- [Ann Yang][linkedin], annyang.p@gmail.com
+
+Please feel free to reach out to me for any feedback, comments, or install issues! I'll be actively working on this as part of my dissertation project.   
+
+[linkedin]: https://www.linkedin.com/in/annyang-p/
