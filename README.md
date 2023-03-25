@@ -1,4 +1,14 @@
 # simpact_vst
+<img src=/images/plugin_screensnip.PNG width=50% height=50%>
+
+### Summary
+Simpact (Simulated Impact) is a plugin that generates impact foley sounds with minimal, intuitive controls based on [RAVE][rave_repo]. MIDI note ONs trigger decoded audio playback, allowing users to place notes corresponding to visual cues. Imported audio files are mapped into the latent space, whose perceptual quality can then be manipulated. The general goal of this plugin design is to assist users in creating a variety of realistic sounding impact sounds without the need for a large sample library or synthesis expertise 
+#### Known Issues
+- latent controls are not functional
+- stutter playback after new file is imported
+- importing non-audio files result in program crash
+
+[rave_repo]: https://github.com/acids-ircam/RAVE
 
 ## External installation dependencies
 * CMake
@@ -17,9 +27,17 @@
 3. Add JUCE as a submodule to the root directory of this repo using 
 `git submodule init` `git submodule update`
 
-### Build
+## Build
 1. In the cloned directory
 2. `mkdir build; cd build`
 3. `cmake -DCMAKE_PREFIX_PATH="your/absolute/path/to/libtorch" ..`
 4. `cmake --build . --config Debug` 
-7. Copy DLL files in `simpact_vst\build\AudioPluginExample_artefacts\Debug` to your executable directory (e.g. C:\Program Files\REAPER (x64))
+7. Copy the DLL files in `simpact_vst\build\AudioPluginExample_artefacts\Debug` to your executable directory (e.g. C:\Program Files\REAPER (x64))
+
+### Feature in progress
+- Latent space controls
+- Playback randomisation control 
+- MIDI note assignment (play the assigned clips on different notes)
+
+[[Demonstration video]](https://youtu.be/TYQM8mYBsws)
+
