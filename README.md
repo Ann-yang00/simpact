@@ -29,10 +29,12 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 
 ## Build
 1. In the cloned directory
-2. `mkdir build; cd build`
+2. `mkdir build` `cd build`
 3. `cmake -DCMAKE_PREFIX_PATH="your/absolute/path/to/libtorch" ..`
 4. `cmake --build . --config Debug` 
-7. Copy the DLL files in `simpact_vst\build\AudioPluginExample_artefacts\Debug` to your executable directory (e.g. C:\Program Files\REAPER (x64))
+5. The artefacts can be found in simpact_vst\build\AudioPluginExample_artefacts\Debug
+6. Copy the DLL files in `\AudioPluginExample_artefacts\Debug` to your executable directory (e.g. C:\Program Files\REAPER (x64))
+7. Add the vst3 path to the DAW plugin search path or copy the vst3 into current search paths
 
 ### Feature in progress
 - Latent space controls
