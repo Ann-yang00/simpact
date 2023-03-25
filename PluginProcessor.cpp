@@ -4,6 +4,7 @@
 #include <juce_core/juce_core.h>
 #include <juce_dsp/juce_dsp.h>
 #include <sstream>
+#include <c10/core/InferenceMode.h>
 
 static const int vector_num = 5;
 static const juce::String controlIdSuffix = "-control";
@@ -247,8 +248,6 @@ void AudioPluginAudioProcessor::releaseResources()
 {
     resampler1->releaseResources();
     filePlayer1->releaseResources();
-    resampler2->releaseResources();
-    filePlayer2->releaseResources();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
