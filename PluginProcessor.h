@@ -57,7 +57,7 @@ public:
     //==============================================================================
     void setFilePath (const juce::String& newPath);
     // TODO this needs updating
-    void AudioPluginAudioProcessor::loadAudioFile();
+    void loadAudioFile();
     std::atomic_flag newfile;
 
 
@@ -90,7 +90,7 @@ private:
 
 
     // Encoder
-    void AudioPluginAudioProcessor::latentRepresentation();
+    void latentRepresentation();
 
     std::string rave_model_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/rave_impact_model_mono.ts";
 
@@ -103,10 +103,10 @@ private:
     torch::Tensor latent_vectors, decoded_output; //decoded_audio;
     torch::Tensor delta;
     // decoder
-    void AudioPluginAudioProcessor::decoder();
+    void decoder();
 
     // latent space update
-    torch::Tensor AudioPluginAudioProcessor::mod_latent();
+    torch::Tensor mod_latent();
     juce::CriticalSection criticalSection;
     std::vector<std::atomic<float>*> latent_controls;
     std::vector<float> snapshot;

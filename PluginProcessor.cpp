@@ -218,7 +218,6 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedLock lock(criticalSection);
     updateProcessors();
 
     juce::ScopedNoDenormals noDenormals;
