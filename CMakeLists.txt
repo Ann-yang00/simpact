@@ -80,7 +80,7 @@ target_compile_definitions(AudioPluginExample
 
 juce_add_binary_data(AudioPluginData SOURCES 
     background.png
-    foley_footstep_single_metal_ramp.wav
+    #foley_footstep_single_metal_ramp.wav
     #rave_impact_model_mono.ts
 )
 

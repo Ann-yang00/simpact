@@ -67,19 +67,6 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // Nothing to do here as our image Drawable will serve as the editor's background.
 }
-/*
-void AudioPluginAudioProcessorEditor::resized()
-{
-    // Set the image to take up the entirty of the editor.
-    background->setBounds (getLocalBounds());
-    
-    // Set the position of the button. I chose these values by opening the background
-    // image in an image editor and finding the pixel positions I wanted the top
-    // left of the button to be at.
-    fileChooserButton.setTopLeftPosition (270, 180);
-    outputvolume_Slider.setBounds(100, 180, 100, 100);
-}
-*/
 
 void AudioPluginAudioProcessorEditor::resized()
 {
@@ -119,14 +106,29 @@ void AudioPluginAudioProcessorEditor::buttonClicked (juce::Button* button)
     {
         // Handle file chooser button click event here
         juce::FileChooser chooser ("Select a file to open...", {}, "*.wav;*.mp3");
+        // TODO: check the selected file is definitely .wav or .mp3
         if (chooser.browseForFileToOpen())
         {
             auto file = chooser.getResult();
-            auto filePath = file.getFullPathName();
-            DBG ("Selected file: " << filePath);
-            // Pass the file path to the processor
-            processorRef.setFilePath (filePath);
-            //processorRef.newfile.clear();
+            auto newfilePath = file.getFullPathName();
+            DBG ("Selected file: " << newfilePath);
+
+            // Check if the file extension is .wav or .mp3
+            auto fileExtension = file.getFileExtension();
+            if (fileExtension == ".wav" || fileExtension == ".mp3")
+            {
+                // TODO Pass the file path to the processor
+                processorRef.filePath = newfilePath;
+                processorRef.newfile.clear();
+            }
+            else
+            {
+                // Display an error message if the selected file is not .wav or .mp3
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
+                                                         "Error",
+                                                         "Please select a .wav or .mp3 file.",
+                                                         "OK");
+            }
         }
     }
 }

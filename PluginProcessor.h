@@ -56,25 +56,23 @@ public:
 
     //==============================================================================
     void setFilePath (const juce::String& newPath);
+    
     // TODO this needs updating
     void loadAudioFile();
     std::atomic_flag newfile;
-
+    // file loader
+    juce::String filePath;
 
 private:
 
     juce::AudioProcessorValueTreeState parameters;
     std::atomic <float>* output_volume;
     std::atomic_flag changesApplied;
-    std::atomic_flag updateApplied;
     
     // This function will be called to update the filter coefficients based on the
     // user parameters.
     void updateProcessors();
     void populateParameterValues();
-
-    // file loader
-    juce::String filePath;
     
     juce::AudioFormatManager formatManager;
 
@@ -90,34 +88,26 @@ private:
 
 
     // Encoder
-    void latentRepresentation();
+    void encoder();
 
     std::string rave_model_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/rave_impact_model_mono.ts";
-
+    std::string default_audio_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/foley_footstep_single_metal_ramp.wav";
 
     //std::string rave_model_file = "C:\\Users\\firef\\Documents\\simpact_vst\\rave_impact_model_mono.ts";
 
     torch::jit::script::Module model;
 
     const int modelSampleRate = 44100;
-    torch::Tensor latent_vectors, decoded_output; //decoded_audio;
-    torch::Tensor delta;
+    torch::Tensor latent_vectors, decoded_output, encoded_input; //decoded_audio;
+    torch::Tensor delta, index;
     // decoder
     void decoder();
 
     // latent space update
-    torch::Tensor mod_latent();
+    void mod_latent();
     juce::CriticalSection criticalSection;
     std::vector<std::atomic<float>*> latent_controls;
     std::vector<float> snapshot;
-    /*
-    std::atomic <float>* latent_control1;
-    std::atomic <float>* latent_control2;
-    std::atomic <float>* latent_control3;
-    std::atomic <float>* latent_control4;
-    std::atomic <float>* latent_control5;
-    */
-    //void fileChooser();
 
     // Playback
     int bufferReadPosition = 0;
