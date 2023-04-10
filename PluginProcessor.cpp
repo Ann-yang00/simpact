@@ -20,8 +20,8 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
                                                                             "|");
     playback_group->addChild (std::make_unique <juce::AudioParameterFloat> ("volume",
                                                                                 "Volume",
-                                                                                -10.0f,
-                                                                                30.0f,
+                                                                                -30.0f,
+                                                                                12.0f,
                                                                                 0.0f));
     parameters.add(std::move(playback_group));                                                        
 
@@ -50,31 +50,20 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     parameters.state.addListener(this); // monitor parameter change
     populateParameterValues();
     changesApplied.clear();
-
     formatManager.registerBasicFormats();
     // load model
     c10::InferenceMode guard;
     torch::jit::getProfilingMode() = false;
     torch::jit::setGraphExecutorOptimize(true);
-
     try {
-        // Load the model
         model = torch::jit::load(rave_model_file);
     }
     catch (const c10::Error& e) {
         std::cout << "Error loading the model: " << e.what() << std::endl;
     }
-    
-    // clear to load default audio file
     filePath = default_audio_file;
+    // clear to load default audio file from filePath
     newfile.clear();
-
-    // TODO change this to JUCEfileChooser in the future and move to reuse load audio code
-    /* fileReader1.reset (formatManager.createReaderFor (std::make_unique <juce::MemoryInputStream> (BinaryData::foley_footstep_single_metal_ramp_wav,
-                                                                                                 BinaryData::foley_footstep_single_metal_ramp_wavSize,
-                                                                                                 false)));
-    loadAudioFile();
-    */
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -82,7 +71,7 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 }
 
 //==============================================================================
-void AudioPluginAudioProcessor::encoder() // changed name from latentRepresentation()
+void AudioPluginAudioProcessor::encoder() 
 {
     // Get a pointer to the raw audio data
     const float* audioData = loadedBuffer.getReadPointer(0);
@@ -106,6 +95,19 @@ void AudioPluginAudioProcessor::encoder() // changed name from latentRepresentat
     c10::InferenceMode guard;
     encoded_input = model.get_method("encode")(model_inputs).toTensor();
 }
+
+void AudioPluginAudioProcessor::mod_latent() 
+{
+    latent_vectors = encoded_input; // copy original encoded value to modify
+    for (int i = 0; i < vector_num; ++i) {
+        auto current_val = latent_controls[i]->load();
+        delta = torch::full({ 1, 1, latent_vectors.size(-1) }, current_val, torch::kFloat32); //3D tensor
+        index = torch::tensor({ i }, torch::kLong); // index tensor should have shape [1]
+        // add delta to the ith vector in the second dimenstion of latent_vectors
+        latent_vectors = at::index_add(latent_vectors, 1, index, delta);  
+    }
+}
+
 void AudioPluginAudioProcessor::decoder() 
 {
     torch::jit::IValue latentIValue = latent_vectors;
@@ -126,41 +128,6 @@ void AudioPluginAudioProcessor::decoder()
     }
 }
 
-void AudioPluginAudioProcessor::mod_latent() {
-    // TODO do we need bool change?
-    //bool change = false;
-    latent_vectors = encoded_input;
-    for (int i = 0; i < vector_num; ++i) {
-        auto current_val = latent_controls[i]->load();
-        if (current_val != snapshot[i]) {
-            //change = true;
-            //torch::Tensor addition = torch::tensor(current_val);
-            //auto delta = torch::linspace(current_val, current_val, latent_vectors.size(-1), torch::kFloat32);
-            //for (int n = 0; n < delta.size(-1); ++n) {
-                //latent_vectors[0][i][n] += addition;
-            delta = torch::full({ 1, 1, latent_vectors.size(-1) }, current_val, torch::kFloat32); //current_val
-            index = torch::tensor({ i }, torch::kLong); // index tensor should have shape [1]
-            //latent_vectors = torch::add(latent_vectors, current_val);
-            DBG("latent size " << torch::str(latent_vectors.sizes()));
-            DBG("delta size " << torch::str(delta.sizes()));
-            DBG("index size " << torch::str(index.sizes()));
-
-            //latent_vectors.index_add_(1, index, delta);
-            latent_vectors = at::index_add(latent_vectors, 1, index, delta);
-
-            //}
-            //latent_vectors.narrow(1, 0, latent_vectors.size(-1)).add_(delta);
-
-            //latent_vectors.slice(1, i, i + 1).squeeze(1) += delta;
-            snapshot[i] = current_val;
-        }
-    }
-    //if (change == true) {
-        // TODO why do we have both changesApplied & updateApplied?
-    //    updateApplied.clear();
-    //}
-    //return delta;
-}
 //==============================================================================
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {   
@@ -197,26 +164,36 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             outputGain = 1.0f;
         }
     }
-    
     // Create an AudioSourceChannelInfo object for resampler2
     resampler2->getNextAudioBlock (juce::AudioSourceChannelInfo (buffer));
 
     // Apply the gain to silence the initial playback.
     buffer.applyGain(juce::Decibels::decibelsToGain <float>(*output_volume));
     buffer.applyGain (outputGain);
+
+    // Check if the output is stereo and copy the audio to the right buffer
+    if (buffer.getNumChannels() > 1)
+    {
+        buffer.copyFrom(1, 0, buffer, 0, 0, buffer.getNumSamples());
+    }
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
-    resampler1->releaseResources();
-    filePlayer1->releaseResources();
+    // Release resources and reset unique_ptrs
+    filePlayer2.reset();
+    resampler2.reset();
+    filePlayer1.reset();
+    resampler1.reset();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     // TODO fix this and add stereo support
-    //return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::mono(); 
-    return true;
+    DBG("Layout is " << layouts.getMainOutputChannelSet().getDescription());
+    return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::mono() 
+        || layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+    //return true;
 }
 //==============================================================================
 
@@ -279,19 +256,15 @@ void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeI
             parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
         }
     }
-    
     // Clear the changesApplied flag so we don't miss the newly set state information
     changesApplied.clear();
 }
+
 //==================================================================================
-// See the updateProcessors() function to see how this is picked up and
-// processed by the audio thread.
 void AudioPluginAudioProcessor::valueTreePropertyChanged (juce::ValueTree &treeWhosePropertyHasChanged,
                                                           const juce::Identifier &property)
 {
-    // Clear the changesApplied flag so that coefficients will be recalcualted on the next
-    // call to processBlock(). THe clear() function of std::actomic_flag puts the flag
-    // into the clear (false) state.
+    // Checked in updateProcessors()  
     changesApplied.clear();
 }
 
@@ -307,22 +280,15 @@ void AudioPluginAudioProcessor::updateProcessors()
     if (changesApplied.test_and_set()){
         return;
     }
-    // TODO volume should have decibel control
-    //output_volume = parameters.getRawParameterValue("volume"); - not needed as we have pointers
-    
-    // TODO work to do with mod_latent - move out of here?
-    // instead of checking snapshot can we just check exactly what was changed?
+    // modify latent representation if changesApplied is false
     mod_latent();
-    //if (update == true) {
-        //latent_vectors += delta;
-    //}
+    // decode resultant latent representation
     decoder();
 }
 
 void AudioPluginAudioProcessor::populateParameterValues()
 {
     latent_controls.reserve(vector_num);
-    snapshot.reserve(vector_num);
     // providing variable with pointers to the raw parameter values:
     output_volume = parameters.getRawParameterValue("volume");
     // for each latent control
@@ -332,19 +298,7 @@ void AudioPluginAudioProcessor::populateParameterValues()
         auto controlID = juce::String(vectorNumber);
         auto rawParameterValue = parameters.getRawParameterValue(controlID + controlIdSuffix);
         latent_controls.push_back(rawParameterValue);
-        // TODO move taking snapshot to after each update 
-        snapshot.push_back(latent_controls[i]->load());
     }
-}
-//==============================================================================
-// pass new file path
-// TODO this can be removed
-void AudioPluginAudioProcessor::setFilePath (const juce::String& newPath)
-{
-    // TODO change to check new file with atomic_flag
-    filePath = newPath;
-    fileReader1.reset(formatManager.createReaderFor(juce::File(filePath)));
-    loadAudioFile();
 }
 
 //==============================================================================

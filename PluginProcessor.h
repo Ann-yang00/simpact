@@ -8,7 +8,6 @@
 #include <torch/torch.h>
 #include <juce_core/juce_core.h>
 
-
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor,
                                    public juce::ValueTree::Listener
@@ -55,65 +54,44 @@ public:
                                    const juce::Identifier &property) override;
 
     //==============================================================================
-    void setFilePath (const juce::String& newPath);
-    
-    // TODO this needs updating
-    void loadAudioFile();
+    // Editor file selction
     std::atomic_flag newfile;
-    // file loader
     juce::String filePath;
 
 private:
+    // Load resources
+    torch::jit::script::Module model;
+    std::string rave_model_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/rave_impact_model_mono.ts";
+    std::string default_audio_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/foley_footstep_single_metal_ramp.wav";
+    const int modelSampleRate = 44100;
 
+    // Parameters
     juce::AudioProcessorValueTreeState parameters;
     std::atomic <float>* output_volume;
     std::atomic_flag changesApplied;
-    
-    // This function will be called to update the filter coefficients based on the
-    // user parameters.
-    void updateProcessors();
     void populateParameterValues();
-    
-    juce::AudioFormatManager formatManager;
+   
+    // Re-sampling and playback
+    void loadAudioFile();
+    int bufferReadPosition = 0;
+    float outputGain = 0.0f;
 
-    std::unique_ptr <juce::AudioFormatReader> fileReader1, fileReader2;
+    juce::AudioFormatManager formatManager;
+    std::unique_ptr <juce::AudioFormatReader> fileReader1;
     std::unique_ptr <juce::AudioFormatReaderSource> filePlayer1;
     std::unique_ptr <juce::PositionableAudioSource> filePlayer2;
     std::unique_ptr <juce::ResamplingAudioSource> resampler1, resampler2;
-
-
     juce::AudioBuffer<float> loadedBuffer;
 
-    // latent space manipulation
-
-
-    // Encoder
-    void encoder();
-
-    std::string rave_model_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/rave_impact_model_mono.ts";
-    std::string default_audio_file = juce::File(juce::String(__FILE__)).getParentDirectory().getFullPathName().toStdString() + "/foley_footstep_single_metal_ramp.wav";
-
-    //std::string rave_model_file = "C:\\Users\\firef\\Documents\\simpact_vst\\rave_impact_model_mono.ts";
-
-    torch::jit::script::Module model;
-
-    const int modelSampleRate = 44100;
-    torch::Tensor latent_vectors, decoded_output, encoded_input; //decoded_audio;
-    torch::Tensor delta, index;
-    // decoder
-    void decoder();
-
-    // latent space update
+    // Latent control & model functions
+    void updateProcessors();
     void mod_latent();
-    juce::CriticalSection criticalSection;
     std::vector<std::atomic<float>*> latent_controls;
-    std::vector<float> snapshot;
 
-    // Playback
-    int bufferReadPosition = 0;
-    juce::AudioDeviceManager deviceManager;
-    juce::AudioSourcePlayer player;
-    float outputGain = 0.0f;
+    void encoder();
+    void decoder();
+    torch::Tensor latent_vectors, decoded_output, encoded_input; 
+    torch::Tensor delta, index;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor);
