@@ -41,6 +41,11 @@ private:
 
     //=============================================================================
     // Declare the latent controls:
+    std::vector<std::unique_ptr<juce::Slider>> latentcontrol_Sliders;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> latentcontrol_Attachments;
+    std::vector<std::unique_ptr<juce::Label>> latentcontrol_Labels;
+
+    /*
     juce::Slider latentcontrol1_Slider;
     SliderAttachment latentcontrol1_Attachment;
     juce::Slider latentcontrol2_Slider;
@@ -51,7 +56,7 @@ private:
     SliderAttachment latentcontrol4_Attachment;
     juce::Slider latentcontrol5_Slider;
     SliderAttachment latentcontrol5_Attachment;
-
+    */
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };

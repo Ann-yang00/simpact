@@ -15,19 +15,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     background (juce::Drawable::createFromImageData (BinaryData::background_png,
                                                      BinaryData::background_pngSize)),
     outputvolume_Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow),
-    outputvolume_Attachment(parameterTree, "volume", outputvolume_Slider),
-    // latemt control
-    latentcontrol1_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol1_Attachment(parameterTree, "1-control", latentcontrol1_Slider),
-    latentcontrol2_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol2_Attachment(parameterTree, "2-control", latentcontrol2_Slider),
-    latentcontrol3_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol3_Attachment(parameterTree, "3-control", latentcontrol3_Slider),
-    latentcontrol4_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol4_Attachment(parameterTree, "4-control", latentcontrol4_Slider),
-    latentcontrol5_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol5_Attachment(parameterTree, "5-control", latentcontrol5_Slider)
-
+    outputvolume_Attachment(parameterTree, "volume", outputvolume_Slider)
 {
     // Add the backround to our editor component.
     addAndMakeVisible (background.get());
@@ -37,25 +25,37 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     fileChooserButton.addListener (this);
     fileChooserButton.changeWidthToFitText (50);
     addAndMakeVisible (fileChooserButton);
-
     addAndMakeVisible(outputvolume_Slider);
 
-    addAndMakeVisible(latentcontrol1_Slider);
-    addAndMakeVisible(latentcontrol2_Slider);
-    addAndMakeVisible(latentcontrol3_Slider);
-    addAndMakeVisible(latentcontrol4_Slider);
-    addAndMakeVisible(latentcontrol5_Slider);
+    // define the latent controls and attachments in a loop:
+    latentcontrol_Sliders.reserve(processorRef.vector_num);
+    latentcontrol_Attachments.reserve(processorRef.vector_num);
+    latentcontrol_Labels.reserve(processorRef.vector_num);
 
+    for (int i = 0; i < processorRef.vector_num; ++i)
+    {
+        auto slider = std::make_unique<juce::Slider>(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow);
+        auto attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(parameterTree, std::to_string(i+1) + "-control", *slider);
+        auto label = std::make_unique<juce::Label>();
+        label->setText("Latent control " + std::to_string(i + 1), juce::dontSendNotification);
+        label->setJustificationType(juce::Justification::centred);
 
+        addAndMakeVisible(*slider);
+        addAndMakeVisible(*label);
+
+        latentcontrol_Sliders.push_back(std::move(slider));
+        latentcontrol_Attachments.push_back(std::move(attachment));
+        latentcontrol_Labels.push_back(std::move(label));
+    }
     // Not resizable!
-    setResizable (false, 
-                  false); 
+    setResizable(false,
+        false);
 
     // To make our editor the same size as the background image we can get the
     // drawable bounds of the image. We then use these to set the editor's size.
     auto bgBounds = background->getDrawableBounds();
-    setSize (bgBounds.getWidth(),
-            bgBounds.getHeight());
+    setSize(bgBounds.getWidth(),
+        bgBounds.getHeight());
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -74,28 +74,31 @@ void AudioPluginAudioProcessorEditor::resized()
     background->setBounds(getLocalBounds());
 
     // Set the position of the file chooser button in the top left corner.
-    fileChooserButton.setBounds(30, 30, 120, 50);
+    fileChooserButton.setBounds(20, 10, 120, 20);
 
     // Set the position of the volume knob in the far right corner.
-    outputvolume_Slider.setBounds(getWidth() - 110, 80, 70, 170);
+    outputvolume_Slider.setBounds(getWidth() - 100, 80, 70, 170);
 
-    // Calculate the horizontal gap between each of the latent control knobs.
-    int horizontalGap = (getWidth() - 160) / 4;
+    int knobWidth = 90;
+    int knobHeight = 70;
+    int labelHeight = 20;
+    int startX = 50;
+    int startY = 40;
+    int knobsPerRow = 5;
+    int columnSpacing = (getWidth() - 2 * startX - knobsPerRow * knobWidth) / (knobsPerRow - 0.3);
+    int rowSpacing = (getHeight() - startY - knobHeight) / 10;
 
-    // Set the position of the first latent control knob.
-    latentcontrol1_Slider.setBounds(180, 80, 100, 100);
+    for (int i = 0; i < processorRef.vector_num; ++i)
+    {
+        int row = i / knobsPerRow;
+        int column = i % knobsPerRow;
 
-    // Set the position of the second latent control knob.
-    latentcontrol2_Slider.setBounds(330, 80, 100, 100);
+        int x = startX + column * (knobWidth + columnSpacing);
+        int y = startY + row * (knobHeight + rowSpacing);
 
-    // Set the position of the third latent control knob.
-    latentcontrol3_Slider.setBounds(120, 220, 100, 100);
-
-    // Set the position of the fourth latent control knob.
-    latentcontrol4_Slider.setBounds(270, 220, 100, 100);
-
-    // Set the position of the fifth latent control knob.
-    latentcontrol5_Slider.setBounds(420, 220, 100, 100);
+        latentcontrol_Sliders[i]->setBounds(x, y, knobWidth, knobHeight);
+        latentcontrol_Labels[i]->setBounds(x, y - labelHeight, knobWidth, labelHeight);
+    }
 }
 
 //==============================================================================

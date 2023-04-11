@@ -6,11 +6,11 @@
 #include <sstream>
 #include <c10/core/InferenceMode.h>
 
-static const int vector_num = 5;
+//static const int vector_num = 10;
 static const juce::String controlIdSuffix = "-control";
 static const juce::String controlNameSuffix = " Control";
 
-static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
+static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout (int latent_control_num)
 {
     juce::AudioProcessorValueTreeState::ParameterLayout parameters;
     juce::NormalisableRange <float> freqRange(20.0f, 20000.0f);
@@ -28,7 +28,7 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
     auto latent_group = std::make_unique <juce::AudioProcessorParameterGroup>("latentcontrol",
                                                                                 "Latent Space Control",
                                                                                 "|");
-    for (int i = 0; i < vector_num; ++i)
+    for (int i = 0; i < latent_control_num; ++i)
     {
         int vectorNumber = i + 1;
         auto controlID = juce::String(vectorNumber);
@@ -44,7 +44,7 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
 
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
-    : parameters (*this, nullptr, "parameters", createParameterLayout()),
+    : parameters (*this, nullptr, "parameters", createParameterLayout(vector_num)),
       AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::mono(), true))
 {
     parameters.state.addListener(this); // monitor parameter change

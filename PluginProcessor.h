@@ -57,6 +57,7 @@ public:
     // Editor file selction
     std::atomic_flag newfile;
     juce::String filePath;
+    static const int vector_num = 16;
 
 private:
     // Load resources
