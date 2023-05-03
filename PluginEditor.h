@@ -51,6 +51,9 @@ private:
     SliderAttachment latentcontrol4_Attachment;
     juce::Slider latentcontrol5_Slider;
     SliderAttachment latentcontrol5_Attachment;
+    // slider 
+    juce::Slider rand_Slider;
+    SliderAttachment rand_Slider_Attachment;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)

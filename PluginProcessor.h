@@ -68,6 +68,7 @@ private:
     // Parameters
     juce::AudioProcessorValueTreeState parameters;
     std::atomic <float>* output_volume;
+    std::atomic <float>* rand_control;
     std::atomic_flag changesApplied;
     void populateParameterValues();
    

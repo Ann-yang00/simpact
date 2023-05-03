@@ -14,19 +14,22 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // Initialise our background Drawable using the image data from BinaryData. 
     background (juce::Drawable::createFromImageData (BinaryData::background_png,
                                                      BinaryData::background_pngSize)),
-    outputvolume_Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow),
+    outputvolume_Slider(juce::Slider::LinearVertical, juce::Slider::NoTextBox),
     outputvolume_Attachment(parameterTree, "volume", outputvolume_Slider),
     // latemt control
-    latentcontrol1_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol1_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox),
     latentcontrol1_Attachment(parameterTree, "1-control", latentcontrol1_Slider),
-    latentcontrol2_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol2_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox),
     latentcontrol2_Attachment(parameterTree, "2-control", latentcontrol2_Slider),
-    latentcontrol3_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol3_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox),
     latentcontrol3_Attachment(parameterTree, "3-control", latentcontrol3_Slider),
-    latentcontrol4_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
+    latentcontrol4_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox),
     latentcontrol4_Attachment(parameterTree, "4-control", latentcontrol4_Slider),
-    latentcontrol5_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow),
-    latentcontrol5_Attachment(parameterTree, "5-control", latentcontrol5_Slider)
+    latentcontrol5_Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox),
+    latentcontrol5_Attachment(parameterTree, "5-control", latentcontrol5_Slider),
+    // randomisation control
+    rand_Slider(juce::Slider::LinearVertical, juce::Slider::NoTextBox),
+    rand_Slider_Attachment(parameterTree, "rand", rand_Slider)
 
 {
     // Add the backround to our editor component.
@@ -45,6 +48,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     addAndMakeVisible(latentcontrol3_Slider);
     addAndMakeVisible(latentcontrol4_Slider);
     addAndMakeVisible(latentcontrol5_Slider);
+
+    addAndMakeVisible(rand_Slider);
 
 
     // Not resizable!
@@ -96,6 +101,8 @@ void AudioPluginAudioProcessorEditor::resized()
 
     // Set the position of the fifth latent control knob.
     latentcontrol5_Slider.setBounds(420, 220, 100, 100);
+
+    rand_Slider.setBounds(getWidth() - 180, 80, 70, 170);
 }
 
 //==============================================================================

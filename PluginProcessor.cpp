@@ -23,6 +23,11 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
                                                                                 -30.0f,
                                                                                 12.0f,
                                                                                 0.0f));
+    playback_group->addChild (std::make_unique <juce::AudioParameterFloat> ("rand",
+                                                                            "Randomisation",
+                                                                            0.0f,
+                                                                            0.5f,
+                                                                            0.0f));   
     parameters.add(std::move(playback_group));                                                        
 
     auto latent_group = std::make_unique <juce::AudioProcessorParameterGroup>("latentcontrol",
@@ -162,6 +167,18 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             // Start playing the audio clip
             filePlayer2->setNextReadPosition (0);
             outputGain = 1.0f;
+
+            // Randomise pitch and volume
+            float randomPitch = juce::Random::getSystemRandom().nextFloat() * 2.0f - 1.0f;
+            float randomVolume = juce::Random::getSystemRandom().nextFloat() * 2.0f - 1.0f;
+            float pitchFactor = 1.0f + (randomPitch * *rand_control);
+            float volumeFactor = 1.0f + (randomVolume * *rand_control);
+
+            // Apply the random pitch
+            resampler2->setResamplingRatio(pitchFactor);
+
+            // Apply the random volume
+            outputGain *= volumeFactor;
         }
     }
     // Create an AudioSourceChannelInfo object for resampler2
@@ -291,6 +308,7 @@ void AudioPluginAudioProcessor::populateParameterValues()
     latent_controls.reserve(vector_num);
     // providing variable with pointers to the raw parameter values:
     output_volume = parameters.getRawParameterValue("volume");
+    rand_control = parameters.getRawParameterValue("rand");
     // for each latent control
     for (int i = 0; i < vector_num; ++i)
     {
