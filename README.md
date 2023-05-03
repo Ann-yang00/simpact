@@ -5,7 +5,6 @@
 Simpact (Simulated Impact) is a plugin that generates impact foley sounds with minimal, intuitive tonal controls based on and trained with [RAVE][rave_repo]. MIDI note ON triggers decoded audio playback, allowing users to place notes corresponding to visual cues on a DAW piano roll. Imported audio files are mapped into the latent space, where their perceptual quality can then be manipulated. The general goal of this plugin design is to assist users in creating a variety of realistic sounding impact sounds without the need for large sample libraries or synthesis expertise. 
 
 #### Known Issues
-- latent controls are not functional
 - stuttering playback after new file is imported
 - importing non-audio files results in program crashing
 
@@ -38,8 +37,6 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 7. Add the vst3 path to the DAW plugin search path or copy the vst3 into current search paths
 
 ### Features in progress
-- Latent space controls
-- Playback randomisation control 
 - MIDI note assignment (play the assigned clips on different notes)
 
 ### Demo
