@@ -20,80 +20,68 @@
 
     <script>
       const playerData = [
-          { id: '1', audioFile: 'audio/splatter-001.wav', title: "Original" },
-          { id: '2', audioFile: 'audio/splatter-002.wav', title: "Splatter -10" },
-          { id: '3', audioFile: 'audio/splatter-003.wav', title: "Splatter -5" },
-          { id: '4', audioFile: 'audio/splatter-004.wav', title: "Splatter +5" },
-          { id: '5', audioFile: 'audio/splatter-005.wav', title: "Splatter +10" },
-          { id: '6', audioFile: 'audio/volume-001.wav', title: "Original" },
-          { id: '7', audioFile: 'audio/volume-002.wav', title: "Volume-10" },
-          { id: '8', audioFile: 'audio/volume-003.wav', title: "Volume-5" },
-          { id: '9', audioFile: 'audio/volume-004.wav', title: "Volume+5" },
-          { id: '10', audioFile: 'audio/volume-005.wav', title: "Volume+10" },
-          { id: '11', audioFile: 'audio/tail-001.wav', title: "Original" },
-          { id: '12', audioFile: 'audio/tail-002.wav', title: "Tail-10" },
-          { id: '13', audioFile: 'audio/tail-003.wav', title: "Tail-5" },
-          { id: '14', audioFile: 'audio/tail-004.wav', title: "Tail+5" },
-          { id: '15', audioFile: 'audio/tail-005.wav', title: "Tail+10" },
-          { id: '16', audioFile: 'audio/boost-001.wav', title: "Original" },
-          { id: '17', audioFile: 'audio/boost-002.wav', title: "Boost-10" },
-          { id: '18', audioFile: 'audio/boost-003.wav', title: "Boost-5" },
-          { id: '19', audioFile: 'audio/boost-004.wav', title: "Boost+5" },
-          { id: '20', audioFile: 'audio/boost-005.wav', title: "Boost+10" },
-          { id: '21', audioFile: 'audio/force-001.wav', title: "Original" },
-          { id: '22', audioFile: 'audio/force-002.wav', title: "Force-10" },
-          { id: '23', audioFile: 'audio/force-003.wav', title: "Force-5" },
-          { id: '24', audioFile: 'audio/force-004.wav', title: "Force+5" },
-          { id: '25', audioFile: 'audio/force-005.wav', title: "Force+10" }
+          { id: '1', audioFile: 'audio/example-001.wav', title: "Original" },
+          { id: '2', audioFile: 'audio/example-002.wav', title: "Splatter: -10" },
+          { id: '3', audioFile: 'audio/example-003.wav', title: "Splatter: -5" },
+          { id: '4', audioFile: 'audio/example-004.wav', title: "Splatter: +5" },
+          { id: '5', audioFile: 'audio/example-005.wav', title: "Splatter: +10" },
+          { id: '6', audioFile: 'audio/example-006.wav', title: "Volume: -10" },
+          { id: '7', audioFile: 'audio/example-007.wav', title: "Volume: -5" },
+          { id: '8', audioFile: 'audio/example-008.wav', title: "Volume: +5" },
+          { id: '9', audioFile: 'audio/example-009.wav', title: "Volume: +10" },
+          { id: '10', audioFile: 'audio/example-010.wav', title: "Tail: -10" },
+          { id: '11', audioFile: 'audio/example-011.wav', title: "Tail: -5" },
+          { id: '12', audioFile: 'audio/example-012.wav', title: "Tail: +5" },
+          { id: '13', audioFile: 'audio/example-013.wav', title: "Tail: +10" },
+          { id: '14', audioFile: 'audio/example-014.wav', title: "Boost: -10" },
+          { id: '15', audioFile: 'audio/example-015.wav', title: "Boost: -5" },
+          { id: '16', audioFile: 'audio/example-016.wav', title: "Boost: +5" },
+          { id: '17', audioFile: 'audio/example-017.wav', title: "Boost: +10" },
+          { id: '18', audioFile: 'audio/example-018.wav', title: "Force: -10" },
+          { id: '19', audioFile: 'audio/example-019.wav', title: "Force: -5" },
+          { id: '20', audioFile: 'audio/example-020.wav', title: "Force: +5" },
+          { id: '21', audioFile: 'audio/example-021.wav', title: "Force: +10" }
     ];
 
     const container = document.querySelector('.audio-players-row');
 
+    playerData.forEach((data, index) => {
+        // Create new player div and its children
+        const playerDiv = document.createElement('div');
+        playerDiv.classList.add('audio-player');
 
-    let groupDiv = null;
-  playerData.forEach((data, index) => {
-      // Every 5 players, create a new group
-      if (index % 5 === 0) {
-          groupDiv = document.createElement('div');
-          groupDiv.classList.add('audio-player-group');
-          container.appendChild(groupDiv);
-      }
+        const title = document.createElement('h3');
+        title.textContent = data.title;
 
-      // Create new player div and its children
-      const playerDiv = document.createElement('div');
-      playerDiv.classList.add('audio-player');
+        const waveformDiv = document.createElement('div');
+        waveformDiv.id = `waveform${data.id}`;
 
-      const title = document.createElement('h3');
-      title.textContent = data.title;
+        const playButton = document.createElement('button');
+        playButton.id = `playButton${data.id}`;
+        playButton.textContent = 'Play';
 
-      const waveformDiv = document.createElement('div');
-      waveformDiv.id = `waveform${data.id}`;
+        // Append the children to the player div
+        playerDiv.appendChild(title);
+        playerDiv.appendChild(waveformDiv);
+        playerDiv.appendChild(playButton);
 
-      const playButton = document.createElement('button');
-      playButton.id = `playButton${data.id}`;
-      playButton.textContent = 'Play';
+        // Append the player div to the container
+        container.appendChild(playerDiv);
 
-      // Append the children to the player div
-      playerDiv.appendChild(title);
-      playerDiv.appendChild(waveformDiv);
-      playerDiv.appendChild(playButton);
+        // Initialize wavesurfer
+        const wavesurfer = WaveSurfer.create({
+            container: `#waveform${data.id}`,
+            waveColor: 'turquoise',
+            progressColor: 'grey'
+        });
+        wavesurfer.load(data.audioFile);
 
-      // Append the player div to the group div
-      groupDiv.appendChild(playerDiv);
+        // Add click event for the play button
+        playButton.addEventListener('click', function () {
+            wavesurfer.playPause();
+        });
+    });
 
-      // Initialize wavesurfer
-      const wavesurfer = WaveSurfer.create({
-          container: `#waveform${data.id}`,
-          waveColor: 'turquoise',
-          progressColor: 'grey'
-      });
-      wavesurfer.load(data.audioFile);
-
-      // Add click event for the play button
-      playButton.addEventListener('click', function () {
-          wavesurfer.playPause();
-      });
-  });
 
   </script>
 </body>
