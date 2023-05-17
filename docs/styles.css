@@ -73,3 +73,15 @@ p.introduction {
   margin: 0 auto; /* This will center the paragraph */
   text-align: center;
 }
+
+a {
+  color: lightblue;
+}
+
+a:hover {
+  color: dodgerblue;
+}
+
+a:visited {
+  color: mediumblue;
+}
