@@ -67,3 +67,9 @@ button:hover {
   margin-bottom: 20px;
   border-bottom: 1px solid #ccc;
 }
+
+p.introduction {
+  max-width: 800px; /* Adjust to your preference */
+  margin: 0 auto; /* This will center the paragraph */
+  text-align: center;
+}
