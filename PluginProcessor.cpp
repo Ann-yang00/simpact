@@ -39,8 +39,8 @@ static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
         auto controlID = juce::String(vectorNumber);
         latent_group->addChild(std::make_unique <juce::AudioParameterFloat>(controlID + controlIdSuffix,
                                                                             controlID + controlNameSuffix,
-                                                                            -10.0f,
-                                                                            10.0f,
+                                                                            -7.0f,
+                                                                            7.0f,
                                                                             0.0f));
     }
     parameters.add(std::move(latent_group));

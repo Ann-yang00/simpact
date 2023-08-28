@@ -7,6 +7,7 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 #### Known Issues
 - stuttering playback after new file is imported
 - importing non-audio files results in program crashing
+- missing previously loaded sample after session reopen
 
 [rave_repo]: https://github.com/acids-ircam/RAVE
 
@@ -39,7 +40,7 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 ### Features in progress
 - MIDI note assignment (play the assigned clips on different notes)
 
-### Demo
+### Demo Video
 
 <a href="https://youtu.be/Om3ukV3t-K8?feature=shared"><img src="/images/video_thumbnail.PNG" alt="Demonstration video" width="40%" height="40%" /></a>
 
