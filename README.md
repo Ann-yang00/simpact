@@ -41,7 +41,7 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 
 ### Demo
 
-<a href="https://youtu.be/TYQM8mYBsws"><img src="/images/video_thumbnail.PNG" alt="Demonstration video" width="40%" height="40%" /></a>
+<a href="https://youtu.be/Om3ukV3t-K8?feature=shared"><img src="/images/video_thumbnail.PNG" alt="Demonstration video" width="40%" height="40%" /></a>
 
 #### Contacts
 - [Ann Yang][linkedin], annyang.p@gmail.com
