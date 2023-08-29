@@ -40,7 +40,7 @@ Simpact (Simulated Impact) is a plugin that generates impact foley sounds with m
 ### Features in progress
 - MIDI note assignment (play the assigned clips on different notes)
 
-### Video Demo
+### Video demo
 
 <a href="https://youtu.be/Om3ukV3t-K8?feature=shared"><img src="/images/video_thumbnail.PNG" alt="Demonstration video" width="40%" height="40%" /></a>
 
